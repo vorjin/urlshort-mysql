@@ -1,0 +1,10 @@
+[
+    {
+        "path": "/urlshort-js",
+        "url": "https://google.com"
+    },
+    {
+        "path": "/urlshort-json",
+        "url": "https://github.com/gophercises"
+    }
+]
