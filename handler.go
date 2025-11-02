@@ -2,10 +2,48 @@
 package urlshort
 
 import (
+	"database/sql"
 	"encoding/json"
+	"fmt"
+	_ "github.com/go-sql-driver/mysql"
 	"gopkg.in/yaml.v2"
 	"net/http"
+	"strings"
 )
+
+func MySQLHandler(fallback http.Handler) http.HandlerFunc {
+	// connecting to the MySQL DB
+	db, err := sql.Open("mysql", "root:newpassword@tcp(localhost:3306)/url_paths")
+	if err != nil {
+		fmt.Println("error validating sql.Open arguments")
+		panic(err)
+	}
+	// defer db.Close()
+
+	// ping DB to check connection
+	err = db.Ping()
+	if err != nil {
+		fmt.Println("error veryfing connection with db.Ping")
+		panic(err)
+	}
+	fmt.Println("Succesfull connection to the database!")
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		var url string
+		path := strings.Trim(r.URL.Path, "/")
+		err = db.QueryRow("SELECT url FROM paths where path = ?", path).Scan(&url)
+
+		if err == sql.ErrNoRows {
+			fallback.ServeHTTP(w, r)
+			return
+		} else if err != nil {
+			panic(err)
+		} else {
+			http.Redirect(w, r, url, http.StatusFound)
+			return
+		}
+	}
+}
 
 func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
