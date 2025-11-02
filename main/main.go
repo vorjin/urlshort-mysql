@@ -49,7 +49,7 @@ func main() {
 	}
 
 	fmt.Println("Starting the server on :8080")
-	err = http.ListenAndServe(":8080", jsonHandler)
+	err = http.ListenAndServe(":8080", urlshort.MySQLHandler(jsonHandler))
 	if err != nil {
 		log.Fatal("Server failed: ", err)
 	}
